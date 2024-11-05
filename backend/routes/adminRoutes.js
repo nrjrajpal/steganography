@@ -50,7 +50,7 @@ router.post("/addAdmin", async (req, res) => {
 
 router.post("/updateAdmin", async (req, res) => {
     try {
-        const { name, adminID, password,email } = req.body;
+        const { name, adminID, password, email } = req.body;
         if (adminID == null || name == null || email == null) {
             res.status(400).json({ message: "The request body doesn't contain all the fields that are required to update admin", success: false });
             return
@@ -60,7 +60,7 @@ router.post("/updateAdmin", async (req, res) => {
         let updatedFields;
         if (existingAdmin) {
             const adminE = await Admin.findOne({ email })
-            if (adminE && email!== adminE.email) {
+            if (adminE && email !== adminE.email) {
                 res.status(409).json({ message: "An admin account with this email already exists", success: false });
                 return
             }
@@ -70,13 +70,13 @@ router.post("/updateAdmin", async (req, res) => {
                 return
             }
 
-            if(password == null){
-                updatedFields = { name, password:existingAdmin.password, email, joiningDate:existingAdmin.joiningDate };
+            if (password == null) {
+                updatedFields = { name, password: existingAdmin.password, email, joiningDate: existingAdmin.joiningDate };
             }
-            else{
+            else {
                 const salt = await bcrypt.genSalt(10);
                 const hash = await bcrypt.hash(password, salt);
-                updatedFields = { name, password:hash, email, joiningDate:existingAdmin.joiningDate };
+                updatedFields = { name, password: hash, email, joiningDate: existingAdmin.joiningDate };
             }
             const updatedDocument = await Admin.findOneAndUpdate(
                 { adminID },
@@ -85,20 +85,20 @@ router.post("/updateAdmin", async (req, res) => {
             );
 
             if (updatedDocument) {
-                res.status(200).json({ message:"Update Admin details", admin:updatedDocument,success: true });
+                res.status(200).json({ message: "Update Admin details", admin: updatedDocument, success: true });
             } else {
-                res.status(500).json({ message: "Failed to update admin.", success: false });
+                res.status(500).json({ message: "Failed to update admin details", success: false });
             }
         } else {
             res.status(404).json({
-                error: `Admin with adminID ${adminID} does not exist.`,
+                message: `Admin with adminID '${adminID}' does not exist`,
                 success: false
             });
         }
     } catch (error) {
         console.error("An error occurred while updating the admin:", error);
         res.status(500).json({
-            error: "An internal server error occurred while updating the admin.",
+            message: "An internal server error occurred while updating the admin",
             success: false
         });
     }
@@ -111,6 +111,29 @@ router.get("/getAllAdmins", isAdmin, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "An internal server error occurred while getting all admins' details: " + error.message,
+            success: false,
+        });
+    }
+})
+
+router.get("/getAdmin/:adminID", isAdmin, async (req, res) => {
+    try {
+        const { adminID } = req.params
+        if (adminID == null) {
+            res.status(400).json({ message: "AdminID is required to get the admin deatils", success: false });
+            return
+        }
+        const admin = await Admin.findOne({ adminID }).select('-_id -password -__v')
+        if (admin) {
+            res.status(200).json({ message: "Fetched admin details successfully!", success: true, admin })
+            return
+        } else {
+            res.status(409).json({ message: "Invalid adminID", success: false });
+            return
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while getting the admin's details: " + error.message,
             success: false,
         });
     }
