@@ -59,13 +59,13 @@ router.post("/updateAdmin", async (req, res) => {
         const existingAdmin = await Admin.findOne({ adminID });
         let updatedFields;
         if (existingAdmin) {
-            const adminE = await Admin.findOne({ email })
-            if (adminE && email !== adminE.email) {
+            const admin = await Admin.findOne({ email })
+            if (admin && email !== admin.email) {
                 res.status(409).json({ message: "An admin account with this email already exists", success: false });
                 return
             }
-            const userE = await User.findOne({ email })
-            if (userE) {
+            const user = await User.findOne({ email })
+            if (user) {
                 res.status(409).json({ message: "A user account with this email already exists", success: false });
                 return
             }
@@ -78,11 +78,7 @@ router.post("/updateAdmin", async (req, res) => {
                 const hash = await bcrypt.hash(password, salt);
                 updatedFields = { name, password: hash, email, joiningDate: existingAdmin.joiningDate };
             }
-            const updatedDocument = await Admin.findOneAndUpdate(
-                { adminID },
-                updatedFields,
-                { new: true }
-            );
+            const updatedDocument = await Admin.findOneAndUpdate({ adminID }, updatedFields, { new: true });
 
             if (updatedDocument) {
                 res.status(200).json({ message: "Update Admin details", admin: updatedDocument, success: true });
