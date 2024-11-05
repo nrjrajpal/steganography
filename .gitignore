@@ -18,3 +18,5 @@ backend/.env
 
 # Miscellaneous
 temp/
+backend/private_key.pem
+backend/public_key.pem
