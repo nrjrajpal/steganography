@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel")
 const Admin = require("../models/adminModel")
 
+const isAdminOrUser = require("../middlewares/isAdminOrUser")
+const isAdmin = require("../middlewares/isAdmin")
+
 router.use(express.json());
 
 router.post("/addUser", async (req, res) => {
@@ -41,6 +44,41 @@ router.post("/addUser", async (req, res) => {
     } catch (error) {
         res.status(500).json({
             error: "An internal server error occurred while adding the user: " + error.message,
+            success: false,
+        });
+    }
+})
+
+router.get("/getAllUsers", isAdmin, async (req, res) => {
+    try {
+        const users = await User.find().select('-_id -password -__v')
+        res.status(200).json({ message: "Success!", success: true, users })
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while getting all users' details: " + error.message,
+            success: false,
+        });
+    }
+})
+
+router.get("/getUser/:username", isAdminOrUser, async (req, res) => {
+    try {
+        const { username } = req.params
+        if (username == null) {
+            res.status(400).json({ message: "Username is required to get the user's deatils", success: false });
+            return
+        }
+        const user = await User.findOne({ username }).select('-_id -password -__v')
+        if (user) {
+            res.status(200).json({ message: "Fetched user details successfully!", success: true, user })
+            return
+        } else {
+            res.status(409).json({ message: "Invalid username", success: false });
+            return
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while getting the user's details: " + error.message,
             success: false,
         });
     }
