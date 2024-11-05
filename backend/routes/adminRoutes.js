@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../models/adminModel")
 const User = require("../models/userModel")
 
+const isAdmin = require("../middlewares/isAdmin")
+
 router.use(express.json());
 
 router.post("/addAdmin", async (req, res) => {
@@ -46,4 +48,16 @@ router.post("/addAdmin", async (req, res) => {
     }
 })
 
-module.exports = router
+router.get("/getAllAdmins", isAdmin, async (req, res) => {
+    try {
+        const admins = await Admin.find().select('-_id -password -__v')
+        res.status(200).json({ message: "Success!", success: true, admins })
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while getting all admins' details: " + error.message,
+            success: false,
+        });
+    }
+})
+
+module.exports = router;
