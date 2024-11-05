@@ -1,0 +1,20 @@
+# Node modules for Next.js frontend
+frontend_new/node_modules/
+backend/node_modules/
+
+# Log files
+frontend_new/*.log
+
+# Environment variables
+frontend_new/.env
+backend/.env
+
+# Editor files
+*.swp
+*.swo
+*.DS_Store
+.idea/
+.vscode/
+
+# Miscellaneous
+temp/
