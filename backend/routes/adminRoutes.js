@@ -120,7 +120,7 @@ router.get("/getAdmin/:adminID", isAdmin, async (req, res) => {
     try {
         const { adminID } = req.params
         if (adminID == null) {
-            res.status(400).json({ message: "AdminID is required to get the admin deatils", success: false });
+            res.status(400).json({ message: "AdminID is required to get the admin's deatils", success: false });
             return
         }
         const admin = await Admin.findOne({ adminID }).select('-_id -password -__v')
