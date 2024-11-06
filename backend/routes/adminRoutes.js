@@ -48,7 +48,7 @@ router.post("/addAdmin", async (req, res) => {
     }
 })
 
-router.post("/updateAdmin", async (req, res) => {
+router.post("/updateAdmin", isAdmin, async (req, res) => {
     try {
         const { name, adminID, password, email } = req.body;
         if (adminID == null || name == null || email == null) {

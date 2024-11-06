@@ -21,7 +21,7 @@ router.post("/login", async (req, res) => {
             const valid = await bcrypt.compare(password, userE.password)
             if (valid) {
                 const token = jwt.sign({ username: userE.username, designation: "user" }, process.env.SECRET, { expiresIn: "3d" })
-                res.status(200).json({ message: "Login successful", success: true, token, designation: "user" })
+                res.status(200).json({ message: "Login successful", success: true, token, designation: "user", username: userE.username })
             } else {
                 res.status(401).json({ message: "Incorrect email or password", success: false });
             }
@@ -30,7 +30,7 @@ router.post("/login", async (req, res) => {
             const valid = await bcrypt.compare(password, adminE.password)
             if (valid) {
                 const token = jwt.sign({ username: adminE.adminID, designation: "admin" }, process.env.SECRET, { expiresIn: "3d" })
-                res.status(200).json({ message: "Login successful", success: true, token, designation: "admin" })
+                res.status(200).json({ message: "Login successful", success: true, token, designation: "admin", adminID: adminE.adminID })
             } else {
                 res.status(401).json({ message: "Incorrect email or password", success: false });
             }
