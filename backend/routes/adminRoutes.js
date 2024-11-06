@@ -53,8 +53,8 @@ router.post("/addAdmin", async (req, res) => {
 
 router.post("/updateAdmin", isAdmin, async (req, res) => {
     try {
-        const { name, adminID, password, email } = req.body;
-        if (adminID == null || name == null || email == null) {
+        let { name, adminID, password, email } = req.body;
+        if (adminID == null || adminID == "") {
             res.status(400).json({ message: "AdminID is required to get the admin's details", success: false });
             return
         }
@@ -101,7 +101,7 @@ router.post("/updateAdmin", isAdmin, async (req, res) => {
     } catch (error) {
         console.error("An error occurred while updating the admin:", error);
         res.status(500).json({
-            message: "An internal server error occurred while updating the admin",
+            message: "An internal server error occurred while updating the admin" + error.message,
             success: false
         });
     }

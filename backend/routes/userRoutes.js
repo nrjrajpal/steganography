@@ -14,9 +14,9 @@ router.use(express.json());
 
 router.post("/updateUser", isAdminOrUser, async (req, res) => {
     try {
-        const { username, name, email, password } = req.body
+        let { username, name, email, password } = req.body
         if (username == null || username == "") {
-            res.status(400).json({ message: "Username is required to get the admin's details", success: false });
+            res.status(400).json({ message: "Username is required to get the users's details", success: false });
             return
         }
         const existingUser = await User.findOne({ username });
@@ -63,7 +63,6 @@ router.post("/updateUser", isAdminOrUser, async (req, res) => {
         });
     }
 })
-hello
 
 router.post("/addUser", async (req, res) => {
     try {
