@@ -12,12 +12,14 @@ const isAdminOrUser = async (req, res, next) => {
             const token = authorizationHeader.split(" ")[1];
             const data = jwt.verify(token, process.env.SECRET);
             if (data.designation.toLowerCase() === "admin") {
-                req.name = data.name
+                req.username = data.username
                 req.designation = data.designation
+                // console.log(req.username)
                 next()
             } else if (data.designation.toLowerCase() === "user") {
-                req.name = data.name
+                req.username = data.username
                 req.designation = data.designation
+                // console.log(req.username)
                 next()
             } else {
                 res.status(401).json({ message: "Unauthorized", success: false });

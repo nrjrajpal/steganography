@@ -12,7 +12,7 @@ const isAdmin = async (req, res, next) => {
             const token = authorizationHeader.split(" ")[1];
             const data = jwt.verify(token, process.env.SECRET);
             if (data.designation.toLowerCase() === "admin") {
-                req.name = data.name
+                req.username = data.username
                 req.designation = data.designation
                 next()
             } else {
