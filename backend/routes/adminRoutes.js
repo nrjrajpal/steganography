@@ -35,7 +35,10 @@ router.post("/addAdmin", async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
         var admin = await Admin.create({ adminID, name, email, password: hash })
+        admin = admin.toObject();
+        delete admin._id;
         delete admin.password;
+        delete admin.__v;
 
         const token = jwt.sign({ username: adminID, designation: "admin" }, process.env.SECRET, { expiresIn: "3d" })
 
@@ -78,7 +81,7 @@ router.post("/updateAdmin", isAdmin, async (req, res) => {
                 const hash = await bcrypt.hash(password, salt);
                 updatedFields = { name, password: hash, email, joiningDate: existingAdmin.joiningDate };
             }
-            const updatedDocument = await Admin.findOneAndUpdate({ adminID }, updatedFields, { new: true });
+            const updatedDocument = await Admin.findOneAndUpdate({ adminID }, updatedFields, { new: true }).select('-_id -password -__v');
 
             if (updatedDocument) {
                 res.status(200).json({ message: "Update Admin details", admin: updatedDocument, success: true });

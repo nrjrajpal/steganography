@@ -36,7 +36,11 @@ router.post("/addUser", async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
         var user = await User.create({ username, name, email, password: hash, ownedPictureIDs: [], sharedPictureIDs: [] })
+        user = user.toObject();
+        delete user._id;
         delete user.password;
+        delete user.__v;
+
 
         const token = jwt.sign({ username, designation: "user" }, process.env.SECRET, { expiresIn: "3d" })
 
