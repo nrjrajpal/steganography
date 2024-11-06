@@ -55,25 +55,29 @@ router.post("/updateAdmin", isAdmin, async (req, res) => {
     try {
         const { name, adminID, password, email } = req.body;
         if (adminID == null || name == null || email == null) {
-            res.status(400).json({ message: "The request body doesn't contain all the fields that are required to update admin", success: false });
+            res.status(400).json({ message: "AdminID is required to get the admin's details", success: false });
             return
         }
 
         const existingAdmin = await Admin.findOne({ adminID });
         let updatedFields;
         if (existingAdmin) {
-            const admin = await Admin.findOne({ email })
-            if (admin && email !== admin.email) {
-                res.status(409).json({ message: "An admin account with this email already exists", success: false });
-                return
-            }
-            const user = await User.findOne({ email })
-            if (user) {
-                res.status(409).json({ message: "A user account with this email already exists", success: false });
-                return
+            if(name == null || name == "") name = existingAdmin.name; 
+            if(email == null || email == "") email = existingAdmin.email; 
+            else{
+                const admin = await Admin.findOne({ email })
+                if (admin && adminID !== admin.adminID) {
+                    res.status(409).json({ message: "An admin account with this email already exists", success: false });
+                    return
+                }
+                const user = await User.findOne({ email })
+                if (user) {
+                    res.status(409).json({ message: "A user account with this email already exists", success: false });
+                    return
+                }
             }
 
-            if (password == null) {
+            if (password == null || password == "") {
                 updatedFields = { name, password: existingAdmin.password, email, joiningDate: existingAdmin.joiningDate };
             }
             else {
@@ -119,7 +123,7 @@ router.get("/getAdmin/:adminID", isAdmin, async (req, res) => {
     try {
         const { adminID } = req.params
         if (adminID == null) {
-            res.status(400).json({ message: "AdminID is required to get the admin's deatils", success: false });
+            res.status(400).json({ message: "AdminID is required to get the admin's details", success: false });
             return
         }
         const admin = await Admin.findOne({ adminID }).select('-_id -password -__v')
