@@ -11,6 +11,59 @@ const isAdmin = require("../middlewares/isAdmin")
 
 router.use(express.json());
 
+
+router.post("/updateUser", isAdminOrUser, async (req, res) => {
+    try {
+        let { username, name, email, password } = req.body
+        if (username == null || username == "") {
+            res.status(400).json({ message: "Username is required to get the users's details", success: false });
+            return
+        }
+        const existingUser = await User.findOne({ username });
+        if(existingUser){
+            if(name == null || name == "") name = existingUser.name; 
+            if(email == null || email == "") email = existingUser.email; 
+            else{
+                const admin = await Admin.findOne({ email })
+                if (admin) {
+                    res.status(409).json({ message: "An admin account with this email already exists", success: false });
+                    return
+                }
+                const user = await User.findOne({ email })
+                if (user && username !== user.username) {
+                    res.status(409).json({ message: "A user account with this email already exists", success: false });
+                    return
+                }
+            }
+
+            if(password !== null && password !== ""){
+                const salt = await bcrypt.genSalt(10);
+                const hash = await bcrypt.hash(password, salt);
+                updatedFields = { name, password: hash, email, ownedPictureIDs:existingUser.ownedPictureIDs, sharedPictureIDs:existingUser.sharedPictureIDs, joiningDate: existingUser.joiningDate };
+            }
+            else{
+                updatedFields = { name, password: existingUser.password, email, ownedPictureIDs:existingUser.ownedPictureIDs, sharedPictureIDs:existingUser.sharedPictureIDs,  joiningDate: existingUser.joiningDate };
+            }
+
+            const updatedDoc = await User.findOneAndUpdate({ username }, updatedFields, { new: true });
+
+            if (updatedDoc) {
+                res.status(200).json({ message: "Updated User details", user: updatedDoc, success: true });
+            } else {
+                res.status(500).json({ message: "Failed to update user details", success: false });
+            }
+        }
+        else{
+            res.status(400).json({ message: "User does not exist", success: false });
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while updating the user : " + error.message,
+            success: false,
+        });
+    }
+})
+
 router.post("/addUser", async (req, res) => {
     try {
         const { username, name, email, password } = req.body
@@ -64,6 +117,7 @@ router.get("/getAllUsers", isAdmin, async (req, res) => {
         });
     }
 })
+
 
 router.get("/getUser/:username", isAdminOrUser, async (req, res) => {
     try {
