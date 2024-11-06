@@ -10,7 +10,7 @@ const isAdmin = require("../middlewares/isAdmin")
 
 router.use(express.json());
 
-router.post("/addAdmin", async (req, res) => {
+router.post("/addAdmin", isAdmin, async (req, res) => {
     try {
         const { adminID, name, email, password } = req.body
         if (adminID == null || name == null || email == null || password == null) {
@@ -62,9 +62,9 @@ router.post("/updateAdmin", isAdmin, async (req, res) => {
         const existingAdmin = await Admin.findOne({ adminID });
         let updatedFields;
         if (existingAdmin) {
-            if(name == null || name == "") name = existingAdmin.name; 
-            if(email == null || email == "") email = existingAdmin.email; 
-            else{
+            if (name == null || name == "") name = existingAdmin.name;
+            if (email == null || email == "") email = existingAdmin.email;
+            else {
                 const admin = await Admin.findOne({ email })
                 if (admin && adminID !== admin.adminID) {
                     res.status(409).json({ message: "An admin account with this email already exists", success: false });

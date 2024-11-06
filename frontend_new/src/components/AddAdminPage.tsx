@@ -39,11 +39,22 @@ const AddAdminPage: React.FC = () => {
     }
 
     try {
+      const token = Cookies.get("token");
+      if (!token) {
+        setMessage({
+          type: "error",
+          text: "Authentication token not found. Please log in again.",
+        });
+        return;
+      }
       const response = await fetch(
         "http://localhost:4000/api/admins/addAdmin",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ adminID, name, email, password }),
         }
       );

@@ -4,7 +4,7 @@ const isAdmin = async (req, res, next) => {
     const authorizationHeader = req.headers.authorization;
 
     if (!authorizationHeader) {
-        res.status(400).json({ error: "Token is missing.", success: false });
+        res.status(400).json({ message: "Token is missing.", success: false });
         return;
     }
     else {
