@@ -107,6 +107,7 @@ router.post("/updateAdmin", isAdmin, async (req, res) => {
     }
 });
 
+
 router.get("/getAllAdmins", isAdmin, async (req, res) => {
     try {
         const admins = await Admin.find().select('-_id -password -__v')
@@ -137,6 +138,28 @@ router.get("/getAdmin/:adminID", isAdmin, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "An internal server error occurred while getting the admin's details: " + error.message,
+            success: false,
+        });
+    }
+})
+
+router.post("/deleteAdmin", isAdmin, async (req, res) => {
+    try {
+        const { adminID } = req.body
+        if (adminID == null || adminID == "") {
+            res.status(400).json({ message: "Admin ID is required", success: false });
+            return
+        }
+        const existingAdmin = await Admin.findOne({ adminID });
+        if(existingAdmin){
+            await Admin.deleteOne({ adminID });
+            res.status(200).json({ message: "Admin Deleted Successfully", success: true, adminID: adminID })
+        }
+        res.status(400).json({ message: "Admin does not exist", success: false });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while getting all users' details: " + error.message,
             success: false,
         });
     }

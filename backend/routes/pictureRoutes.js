@@ -39,12 +39,6 @@ function encryptMessageAES(dataBuffer) {
 
     const encrypted = Buffer.concat([cipher.update(dataBuffer), cipher.final()]);
 
-    // console.log("Encryption Complete:");
-    // console.log("Key:", key.toString("base64"));
-    // console.log("IV:", iv.toString("base64"));
-    // console.log("Encrypted Message Length:", encrypted.length);
-    // console.log("Encrypted Message (Base64):", encrypted.toString("base64"));
-
     return {
         key: key.toString("base64"),
         iv: iv.toString("base64"),
@@ -339,11 +333,10 @@ router.delete("/deletePicture", isUser, async (req, res) => {
         await User.findOneAndUpdate({ username }, user, { new: true });
 
         for (const username_ of picture.sharedUsernames) {
-            let user = await User.findOne({ username_ })
+            let user = await User.findOne({ username: username_ })
             if (user) {
-                let user = await User.findOne({ username_ })
                 user.sharedPictureIDs = user.sharedPictureIDs.filter(picID => picID !== pictureID);
-                await User.findOneAndUpdate({ username_ }, user, { new: true });
+                await User.findOneAndUpdate({ username: username_ }, user, { new: true });
             }
         }
         const params = {
@@ -372,7 +365,7 @@ router.delete("/deletePicture", isUser, async (req, res) => {
         await Picture.deleteOne({ pictureID });
 
 
-        res.status(200).json({ message: "Picture deleted successfully", success: true });
+        res.status(200).json({ message: "Picture deleted successfully", success: true, pictureID: pictureID });
     } catch (error) {
         res.status(500).json({
             message: "An internal server error occurred while deleting the picture: " + error.message,

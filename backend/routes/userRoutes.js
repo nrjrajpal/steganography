@@ -4,10 +4,21 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/userModel")
+const Picture = require("../models/pictureModel")
 const Admin = require("../models/adminModel")
 
 const isAdminOrUser = require("../middlewares/isAdminOrUser")
 const isAdmin = require("../middlewares/isAdmin")
+
+
+const { S3Client, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { CloudFrontClient, CreateInvalidationCommand } = require("@aws-sdk/client-cloudfront");
+
+const bucketName = process.env.BUCKET_NAME
+const bucketRegion = process.env.BUCKET_REGION
+const cloudFrontDistID = process.env.CLOUD_FRONT_DIST_ID
+const s3 = new S3Client({ region: bucketRegion })
+const cloudFront = new CloudFrontClient({ region: bucketRegion })
 
 router.use(express.json());
 
@@ -118,7 +129,6 @@ router.get("/getAllUsers", isAdmin, async (req, res) => {
     }
 })
 
-
 router.get("/getUser/:username", isAdminOrUser, async (req, res) => {
     try {
         const { username } = req.params
@@ -137,6 +147,88 @@ router.get("/getUser/:username", isAdminOrUser, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "An internal server error occurred while getting the user's details: " + error.message,
+            success: false,
+        });
+    }
+})
+
+router.post("/deleteUser", isAdminOrUser, async (req, res) => {
+    try {
+        const { username } = req.body
+        if (username == null || username == "") {
+            res.status(400).json({ message: "Username is required", success: false });
+            return
+        }
+        if (username !== req.username && req.designation !== "admin") {
+            res.status(409).json({ message: "You are not allowed to delete this user account", success: false });
+            return
+        }
+
+        const existingUser = await User.findOne({ username });
+
+        if(existingUser){
+            // for owned pictures
+            for (const pictureID of existingUser.ownedPictureIDs) {
+        
+                const picture = await Picture.findOne({ pictureID });
+        
+                if (username !== picture.ownerUsername)
+                    continue
+
+                existingUser.ownedPictureIDs = existingUser.ownedPictureIDs.filter(picID => picID !== pictureID);
+        
+                await User.findOneAndUpdate({ username }, existingUser, { new: true });
+        
+                for (const username_ of picture.sharedUsernames) {
+                    let user_ = await User.findOne({ username: username_ })
+                    if (user_) {
+                        user_.sharedPictureIDs = user_.sharedPictureIDs.filter(picID => picID !== pictureID);
+                        await User.findOneAndUpdate({ username: username_ }, user_, { new: true });
+                    }
+                }
+                const params = {
+                    Bucket: bucketName,
+                    Key: pictureID,
+                };
+                const command = new DeleteObjectCommand(params);
+                await s3.send(command);
+        
+                //CallerReference is a unique name for identicication of this deletion request... CloudFront ignores the(duplicate) request if accidentally 2 or more are sent(when the caller reference and details are same for all of them)
+                const params2 = {
+                    DistributionId: cloudFrontDistID,
+                    InvalidationBatch: {
+                        CallerReference: pictureID,
+                        Paths: {
+                            Quantity: 1,
+                            Items: [
+                                "/" + pictureID
+                            ]
+                        }
+                    }
+                }
+                // console.log("/" + picture.pictureID)
+                const command2 = new CreateInvalidationCommand(params2)
+                await cloudFront.send(command2)
+                await Picture.deleteOne({ pictureID });
+
+                console.log("Deleted picture: ", pictureID);
+            }
+
+            // for shared pictures
+            for (const pictureID of existingUser.sharedPictureIDs) {
+                const sharedPicData = await Picture.findOne({ pictureID });
+                sharedPicData.sharedUsernames = sharedPicData.sharedUsernames.filter(userName => userName !== username);
+                await Picture.findOneAndUpdate({ pictureID }, sharedPicData, { new: true });
+            }
+
+            await User.deleteOne({ username });
+            res.status(200).json({ message: "User Deleted Successfully", success: true, username: username })
+        }
+        res.status(400).json({ message: "User does not exist", success: false });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "An internal server error occurred while getting all users' details: " + error.message,
             success: false,
         });
     }
