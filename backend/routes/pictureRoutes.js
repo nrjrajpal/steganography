@@ -405,7 +405,7 @@ router.post("/shareImage", async (req, res) => {
             }
         }
 
-        picture.sharedUsernames = Array.from(new Set([...picture.sharedUsernames, ...sharedUsernames]))
+        picture.sharedUsernames = Array.from(new Set([...picture.sharedUsernames, ...sharedUsers]))
 
         const updatedPicture = await Picture.findOneAndUpdate({ pictureID }, picture, { new: true });
         // console.log(updatedPicture)

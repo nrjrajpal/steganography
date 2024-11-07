@@ -31,10 +31,10 @@ router.post("/updateUser", isAdminOrUser, async (req, res) => {
             return
         }
         const existingUser = await User.findOne({ username });
-        if(existingUser){
-            if(name == null || name == "") name = existingUser.name; 
-            if(email == null || email == "") email = existingUser.email; 
-            else{
+        if (existingUser) {
+            if (name == null || name == "") name = existingUser.name;
+            if (email == null || email == "") email = existingUser.email;
+            else {
                 const admin = await Admin.findOne({ email })
                 if (admin) {
                     res.status(409).json({ message: "An admin account with this email already exists", success: false });
@@ -47,16 +47,16 @@ router.post("/updateUser", isAdminOrUser, async (req, res) => {
                 }
             }
 
-            if(password !== null && password !== ""){
+            if (password == null || password == "") {
+                updatedFields = { name, password: existingUser.password, email, ownedPictureIDs: existingUser.ownedPictureIDs, sharedPictureIDs: existingUser.sharedPictureIDs, joiningDate: existingUser.joiningDate };
+            }
+            else {
                 const salt = await bcrypt.genSalt(10);
                 const hash = await bcrypt.hash(password, salt);
-                updatedFields = { name, password: hash, email, ownedPictureIDs:existingUser.ownedPictureIDs, sharedPictureIDs:existingUser.sharedPictureIDs, joiningDate: existingUser.joiningDate };
-            }
-            else{
-                updatedFields = { name, password: existingUser.password, email, ownedPictureIDs:existingUser.ownedPictureIDs, sharedPictureIDs:existingUser.sharedPictureIDs,  joiningDate: existingUser.joiningDate };
+                updatedFields = { name, password: hash, email, ownedPictureIDs: existingUser.ownedPictureIDs, sharedPictureIDs: existingUser.sharedPictureIDs, joiningDate: existingUser.joiningDate };
             }
 
-            const updatedDoc = await User.findOneAndUpdate({ username }, updatedFields, { new: true });
+            const updatedDoc = await User.findOneAndUpdate({ username }, updatedFields, { new: true }).select('-_id -password -__v');
 
             if (updatedDoc) {
                 res.status(200).json({ message: "Updated User details", user: updatedDoc, success: true });
@@ -64,7 +64,7 @@ router.post("/updateUser", isAdminOrUser, async (req, res) => {
                 res.status(500).json({ message: "Failed to update user details", success: false });
             }
         }
-        else{
+        else {
             res.status(400).json({ message: "User does not exist", success: false });
         }
     } catch (error) {
@@ -134,6 +134,11 @@ router.get("/getUser/:username", isAdminOrUser, async (req, res) => {
         const { username } = req.params
         if (username == null) {
             res.status(400).json({ message: "Username is required to get the user's deatils", success: false });
+            return
+        }
+        // console.log(username, req.designation, (username !== req.username))
+        if (username !== req.username && req.designation !== "admin") {
+            res.status(409).json({ message: "You are not allowed to access these details", success: false });
             return
         }
         const user = await User.findOne({ username }).select('-_id -password -__v')

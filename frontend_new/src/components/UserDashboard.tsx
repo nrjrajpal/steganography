@@ -1,35 +1,47 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const UserDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const username = Cookies.get("username");
+
+  const handleLogout = () => {
+    Cookies.remove("token");
+    Cookies.remove("username");
+    Cookies.remove("designation");
+    navigate("/login");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">User Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Profile</h2>
-          <p className="text-gray-600 mb-4">
-            View and edit your profile information.
-          </p>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-            Edit Profile
-          </button>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Messages</h2>
-          <p className="text-gray-600 mb-4">
-            Check your messages and notifications.
-          </p>
-          <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-            View Messages
-          </button>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Settings</h2>
-          <p className="text-gray-600 mb-4">Manage your account settings.</p>
-          <button className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-            Change Settings
-          </button>
-        </div>
+      <h1 className="text-3xl font-bold mb-6">User Dashboard</h1>
+      <p className="mb-4">Welcome, {username}!</p>
+      <div className="space-y-4">
+        <button
+          onClick={() => navigate("/upload-picture")}
+          className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+        >
+          Upload Picture
+        </button>
+        <button
+          onClick={() => navigate("/pictures")}
+          className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+        >
+          View Pictures
+        </button>
+        <button
+          onClick={() => navigate(`/user-details/${username}`)}
+          className="w-full bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors"
+        >
+          View My Details
+        </button>
+        <button
+          onClick={handleLogout}
+          className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

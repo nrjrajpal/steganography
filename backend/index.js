@@ -14,7 +14,7 @@ app.use('/api/users', userRoutes);
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admins', adminRoutes);
 const loginRoutes = require('./routes/loginRoutes');
-app.use('/api', loginRoutes);
+app.use('/api/auth', loginRoutes);
 
 const dbConnection = async () => {
     try {
