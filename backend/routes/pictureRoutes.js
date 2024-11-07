@@ -339,11 +339,13 @@ router.delete("/deletePicture", isUser, async (req, res) => {
         await User.findOneAndUpdate({ username }, user, { new: true });
 
         for (const username_ of picture.sharedUsernames) {
-            let user = await User.findOne({ username_ })
+            console.log("342: ", username_, picture.sharedUsernames)
+            let user = await User.findOne({ username: username_ })
             if (user) {
-                let user = await User.findOne({ username_ })
+                console.log("Inside if", user)
+                // let user = await User.findOne({ username_ })
                 user.sharedPictureIDs = user.sharedPictureIDs.filter(picID => picID !== pictureID);
-                await User.findOneAndUpdate({ username_ }, user, { new: true });
+                await User.findOneAndUpdate({ username: username_ }, user, { new: true });
             }
         }
         const params = {
@@ -412,7 +414,7 @@ router.post("/shareImage", async (req, res) => {
             }
         }
 
-        picture.sharedUsernames = Array.from(new Set([...picture.sharedUsernames, ...sharedUsernames]))
+        picture.sharedUsernames = Array.from(new Set([...picture.sharedUsernames, ...sharedUsers]))
 
         const updatedPicture = await Picture.findOneAndUpdate({ pictureID }, picture, { new: true });
         // console.log(updatedPicture)

@@ -4,11 +4,11 @@ import Cookies from "js-cookie";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const adminID = Cookies.get("adminID");
+  const adminID = Cookies.get("username");
 
   const handleLogout = () => {
     Cookies.remove("token");
-    Cookies.remove("adminID");
+    Cookies.remove("usernname");
     Cookies.remove("designation");
     navigate("/login");
   };
